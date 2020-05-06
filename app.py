@@ -428,19 +428,18 @@ def customer_segmentation():
     To find it out, no of clusters for K-mean algorithm we will apply Elbow Method.
     **Elbow Method** simply tells the optimal cluster number for optimal inertia.
     """)
- 
-    # sse={}
-    # recency = user[['Recency']]
-    # for k in range(1, 10):
-    #     kmeans = KMeans(n_clusters=k, max_iter=1000).fit(recency)
-    #     recency["clusters"] = kmeans.labels_
-    #     sse[k] = kmeans.inertia_ 
-    # plt.figure()
-    # plt.plot(list(sse.keys()), list(sse.values()))
-    # plt.xlabel("Number of cluster")
-    # plt.show()
     #figure to find cluster
-    st.image(Image.open('no_of_cluster.png'), caption="Inertia Graph", use_column_width=True)
+    sse={}
+    recency = user[['Recency']]
+    for k in range(1, 10):
+        kmeans = KMeans(n_clusters=k, max_iter=1000).fit(recency)
+        recency["clusters"] = kmeans.labels_
+        sse[k] = kmeans.inertia_ 
+    plt.figure()
+    plt.plot(list(sse.keys()), list(sse.values()))
+    plt.xlabel("Number of cluster")
+    st.pyplot(plt.show())
+    
 
     st.write("""In above it looks like 3 is the optimal one. Based on business requirements, 
     we can go ahead with less or more clusters. We will be selecting 4 for this example:""")
