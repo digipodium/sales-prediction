@@ -18,13 +18,13 @@ import statsmodels.formula.api as smf
 import statsmodels.api as sm
 
 #import Keras
-import keras
-from keras.layers import Dense
-from keras.models import Sequential
-from keras.optimizers import Adam 
-from keras.callbacks import EarlyStopping
-from keras.utils import np_utils
-from keras.layers import LSTM
+from tensorflow import keras as keras
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.optimizers import Adam 
+from tensorflow.keras.callbacks import EarlyStopping
+
+from tensorflow.keras.layers import LSTM
 
 #import machine learning algorithm
 import xgboost as xgb
@@ -954,6 +954,7 @@ def churn_prediction():
     st.write(churn_df.head())
     churn_df.loc[churn_df.Churn=='No','Churn'] = 0 
     churn_df.loc[churn_df.Churn=='Yes','Churn'] = 1
+    churn_df.Churn = churn_df.Churn.astype('int')
     st.write(churn_df)
 
     # def plot_churn_graphs(datafieldname):
@@ -1631,7 +1632,7 @@ def predicting_sales():
 
     y_pred = model.predict(X_test,batch_size=1)
 
-    st.image(Image.open('y_pred.png'), caption="y_pred", use_column_width=True)
+    st.image(Image.open('y_pred.png'),caption="y_pred", use_column_width=True)
     st.image(Image.open('y_test.png'), caption="y_test", use_column_width=True)
 
     #Inverse Transformation for scaling
