@@ -1459,7 +1459,7 @@ def predict_next_purchase_day():
 
     #create an array of models
     models = []
-    models.append(("LR",LogisticRegression()))
+    models.append(("LR",LogisticRegression(solver='lbfgs')))
     models.append(("NB",GaussianNB()))
     models.append(("RF",RandomForestClassifier()))
     models.append(("SVC",SVC()))
@@ -1467,11 +1467,27 @@ def predict_next_purchase_day():
     models.append(("XGB",xgb.XGBClassifier()))
     models.append(("KNN",KNeighborsClassifier()))
 
+    def save_model(model,path):
+        import pickle
+        # create a folder named models
+        with open("models/"+path+".pk",'wb') as f:
+            pickle.dump(model,f)
+            print('saved as ',"models/"+path+".pk")
+
+    st.write(X_train.columns)
+    st.write(y_train)
     #measure the accuracy 
     for name,model in models:
         kfold = KFold(n_splits=2, random_state=22)
         cv_result = cross_val_score(model,X_train,y_train, cv = kfold,scoring = "accuracy")
+        try:
+            model.fit(X_train,y_train)
+            save_model(model,name)
+        except Exception as e:
+            st.write(e)
         st.write(name, cv_result)
+
+
 
 
     xgb_model = xgb.XGBClassifier().fit(X_train, y_train)
@@ -1952,8 +1968,11 @@ def market_response_model():
     Trying different offers based on customer’s uplift score""")
 
 
-
-
+def predict_next_purchase_day(data):
+    import pickle
+    with open("models/NB.pk",'rb') as f:
+        model = pickle.load(f)
+    return model.predict(np.array(data).reshape(-1,1))[0]
 
 
 if __name__ == "__main__":
