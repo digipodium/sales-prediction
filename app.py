@@ -16,6 +16,7 @@ warnings.filterwarnings("ignore")
 # Import statsmodels.formula.api
 import statsmodels.formula.api as smf
 import statsmodels.api as sm
+import pickle
 
 #import Keras
 from tensorflow import keras as keras
@@ -1220,7 +1221,8 @@ def predict_next_purchase_day():
     np_user = pd.merge(np_user, purchase_dates[['CustomerID','NextPurchaseDay']],on='CustomerID',how='left')
 
     #print tx_user
-    st.write(np_user.head())
+    if st.checkbox("View User Data:"):
+        st.write(np_user.head())
 
     #fill NA values with 999
     np_user = np_user.fillna(999)
@@ -1532,19 +1534,17 @@ def predict_next_purchase_day():
     models.append(("NB",GaussianNB()))
     models.append(("RF",RandomForestClassifier()))
     models.append(("SVC",SVC()))
-    models.append(("DecisionTreeClassifier",DecisionTreeClassifier()))
-    models.append(("XGBClassifier",xgb.XGBClassifier()))
-    models.append(("KNeighborsClassifier",KNeighborsClassifier()))
+    models.append(("Dtree",DecisionTreeClassifier()))
+    models.append(("XGB",xgb.XGBClassifier()))
+    models.append(("KNN",KNeighborsClassifier()))
 
     def save_model(model,path):
-        import pickle
         # create a folder named models
         with open("models/"+path+".pk",'wb') as f:
             pickle.dump(model,f)
             print('saved as ',"models/"+path+".pk")
 
-    st.write(X_train.columns)
-    st.write(y_train)
+
     #measure the accuracy 
     for name,model in models:
         kfold = KFold(n_splits=2, random_state=22)
@@ -1573,7 +1573,35 @@ def predict_next_purchase_day():
     if st.checkbox('Best Grid Parameters'):
         gsearch1.best_params_,
     if st.checkbox('Click to view GridSearch Best Score'):
-        gsearch1.best_score_* 100
+        'Score: {:.2f}'.format(gsearch1.best_score_* 100)
+
+    if st.checkbox('Enter Input to Predict Customer Next Purchase Day'):
+        st.info("Please Fill Data")
+        Customer_id = st.number_input('CusomerId',min_value =10000, max_value = 99999, value=12345 )
+        Recency_no = st.number_input('RecencyNo', min_value=0, max_value=365, value=123, step=5)
+        Recency_cluster = st.number_input('RecencyCluster', min_value=0, max_value=3, value=2)
+        Frequency_input = st.number_input('Frequency', min_value=1, max_value=10000, value=5455, step=100)
+        Frequency_cluster = st.number_input('FrequencyCluster', min_value=0, max_value=365, value=123, step = 4)
+        Revenue = st.number_input('Revenue', min_value=100, max_value=100000, value=9999, step=1000)
+        Revenue_cluster = st.number_input('RevenueCluster', min_value=0, max_value=2, value=1)
+        OverallScore = st.number_input('OverAllScore', min_value=0, max_value=10, value=6)
+        DayDiff = st.number_input('DayDiff', min_value=1, max_value=200, value=121, step = 5)
+        DayDiff2 = st.number_input('DayDiff2', min_value=1, max_value=200, value=67, step=5)
+        DayDiff3 = st.number_input('DayDiff3', min_value=1, max_value=200, value=72, step=5)
+        DayData = [DayDiff + DayDiff2 + DayDiff3]
+        DayDiffMean = np.mean(DayData)
+        DayDiffStdev = np.std(DayData)
+        Segment_high_value = st.number_input('SegmentHighValue', min_value=0, max_value=1, value=1)
+        Segment_Low_value = st.number_input('SegmentLowValue', min_value=0, max_value=1, value=0)
+        Segment_Mid_value = st.number_input('SegmentMidValue', min_value=0, max_value=1, value=1)
+       # Next_Purchase_day_Range = st.number_input('NextPurchaseDayRange', min_value=0, max_value=2, value=1)
+        model_name = st.selectbox('Select Model Name:', ["LR", "NB", "RF", "SVC", "Dtree", "XGB" ,"KNN"])
+
+        ls_data = [Customer_id, Recency_no, Recency_cluster, Frequency_input, Frequency_cluster, Revenue, Revenue_cluster, OverallScore, DayDiff, DayDiff2, 
+                 DayDiff3, DayDiffMean, DayDiffStdev, Segment_high_value,Segment_Low_value, Segment_Mid_value  ]
+
+        st.write(ls_data,predict_upnext_purchase_day(ls_data, model_name))
+
 
 
 #predict sales effect
@@ -2040,11 +2068,10 @@ def market_response_model():
     Trying different offers based on customer’s uplift score""")
 
 
-def predict_next_purchase_day(data):
-    import pickle
-    with open("models/NB.pk",'rb') as f:
+def predict_upnext_purchase_day(data, modelName):
+    with open("models/"+modelName+".pk",'rb') as f:
         model = pickle.load(f)
-    return model.predict(np.array(data).reshape(-1,1))[0]
+    return model.predict(np.array(data).reshape(1,-1))[0]
 
 
 if __name__ == "__main__":
