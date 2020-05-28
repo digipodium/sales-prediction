@@ -23,7 +23,6 @@ from tensorflow.keras.layers import Dense
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.optimizers import Adam 
 from tensorflow.keras.callbacks import EarlyStopping
-
 from tensorflow.keras.layers import LSTM
 
 #import machine learning algorithm
@@ -53,18 +52,28 @@ def load_data():
 data_load = load_data() # calling data loading function
 data = data_load
 
+#Main heading
+main_heading = """
+                <div>
+                <h1 style="background-color: CadetBlue;text-align:center;">Sales Prediction Of Products</h1>
+                <h2 style="text-align:right;"><i>Using Regression Algorithms</i></h2>
+                </div>
+            """
+st.markdown(main_heading, unsafe_allow_html=True)
+st.write("---")
 
 #Main Function
 def main():
 
     """Main Function of Sales Prediction"""
-    option = st.sidebar.radio("Data Metrics",("Home", "Data Metrics",
+    option = st.sidebar.radio("Use Navigation Here:",("Home", "Data Metrics",
                         "Customer Segmentation","Customer Value Prediction",
                         "Churn Prediction", "Next Purchase Day", "Predicting Sales",
                         "Market Response"
                          ))
     if option == "Home":
-        st.write("Home")
+        with st.spinner("Wait for it..."):
+            st.write(home_page())
     elif option == "Data Metrics":
         with st.spinner("Wait for it..."):
             st.write(metrics_of_data())
@@ -86,6 +95,22 @@ def main():
     elif option == "Market Response":
         with st.spinner("In Progress"):
             st.write(market_response_model())
+
+
+def home_page():
+    st.title("Overview Of Project:")
+    st.write("**_“No great marketing decisions have ever been made on qualitative data.” – John Sculley_**")
+    st.write("""
+    _In this project, we are addressing the problem of sales prediction or forecasting of an item on customer’s future demand in different stores
+    across various locations and products based on the previous record. Different machine learning algorithms like linear regression analysis, random forest, etc
+    are used for prediction or forecasting of sales volume._
+    """)
+
+    st.write("""
+    _This project, helps in developing the strategies of business about the marketplace to improve the knowledge of market. A standard sales prediction study can
+    help in deeply analyzing the situations or the conditions previously occurred and then, the inference can be applied about customer acquisition, funds inadequacy
+    and strengths before setting a budget and marketing plans for the upcoming year._
+    """)
     
 
 #function for ordering cluster numbers
@@ -102,7 +127,7 @@ def order_cluster(cluster_field_name, target_field_name,df,ascending):
 
 # function for Data Metrics
 def metrics_of_data():
-    st.markdown("**_Metrics of Data_**")
+    st.header("**_Metrics of Data_**")
     st.write('The metrics of data will help to define the core information of data')
     st.latex(r'''Revenue = Active Customer count * Order Count * Average Revenue Per Order''')
     #converting the type of Invoice Date Field from string to datetime.
@@ -118,7 +143,7 @@ def metrics_of_data():
     if st.checkbox('View Data'):
         st.dataframe(data.head(10))
     
-        #X and Y axis inputs for Plotly graph. We use Scatter for line graphs
+    #X and Y axis inputs for Plotly graph. We use Scatter for line graphs
     plot_data = [
     go.Scatter(
             x=revenue['InvoiceYearMonth'],
@@ -127,11 +152,12 @@ def metrics_of_data():
     ]
 
     plot_layout = go.Layout(
-            xaxis={"type": "category"},
+            xaxis={"type": "category", 'title': "YearMonth"},
+            yaxis= {'title': "Revenue"},
             title='Montly Revenue'
     )
     fig = go.Figure(data=plot_data, layout=plot_layout)
-    st.plotly_chart(fig) #Monthly Rvenue Visualization
+    st.plotly_chart(fig)      #Monthly Rvenue Visualization
     st.write('This graph clearly shows our revenue is growing especially Aug ‘11 onwards')
 
     st.write("Now, Let's figure out what is our **_Monthly Revenue Growth Rate:_**")
@@ -149,7 +175,8 @@ def metrics_of_data():
     ]
 
     plot_layout = go.Layout(
-            xaxis={"type": "category"},
+            xaxis={"type": "category", 'title': "YearMonth"},
+            yaxis= {'title': "Growth in Revenue"},
             title='Montly Growth Rate'
         )
 
@@ -159,6 +186,7 @@ def metrics_of_data():
     st.write("""Looks good, but we need to figure out what happen on April.
     For this we have to do deep analysis like **Monthly Active Customers**, 
     by counting unique customersID""")
+    
     #creating a new dataframe with UK customers only
     uk = data.query("Country=='United Kingdom'").reset_index(drop=True)
 
@@ -166,7 +194,9 @@ def metrics_of_data():
     monthly_active = uk.groupby('InvoiceYearMonth')['CustomerID'].nunique().reset_index()
 
     #print the dataframe
-    monthly_active
+    if st.checkbox('Monthly Active Customers Data'):
+        st.dataframe(monthly_active.head(10))
+    
 
     #plotting the output
     plot_data = [
@@ -177,7 +207,8 @@ def metrics_of_data():
     ]
 
     plot_layout = go.Layout(
-            xaxis={"type": "category"},
+            xaxis={"type": "category", 'title': "YearMonth"},
+            yaxis= {'title': "Customers"},
             title='Monthly Active Customers'
         )
 
@@ -189,7 +220,8 @@ def metrics_of_data():
     monthly_sales = uk.groupby('InvoiceYearMonth')['Quantity'].sum().reset_index()
 
     #print the dataframe
-    monthly_sales
+    if st.checkbox('Monthly Sales Data'):
+        monthly_sales.head(10)
 
     #plot
     plot_data = [
@@ -200,8 +232,9 @@ def metrics_of_data():
     ]
 
     plot_layout = go.Layout(
-            xaxis={"type": "category"},
-            title='Monthly Total # of Order'
+            xaxis={"type": "category", 'title': "YearMonth"},
+            yaxis= {'title': "Order Quantity"},
+            title='Monthly Total Order'
         )
 
     order_count_fig = go.Figure(data=plot_data, layout=plot_layout)
@@ -213,7 +246,8 @@ def metrics_of_data():
     monthly_order_avg = uk.groupby('InvoiceYearMonth')['Revenue'].mean().reset_index()
 
     #print the dataframe
-    monthly_order_avg
+    if st.checkbox('Monthly Order Average Data'):
+        monthly_order_avg.head(10)
 
     #plot the bar chart
     plot_data = [
@@ -224,7 +258,8 @@ def metrics_of_data():
     ]
 
     plot_layout = go.Layout(
-            xaxis={"type": "category"},
+            xaxis={"type": "category", 'title': "YearMonth"},
+            yaxis= {'title': "Avg. Monthly Order"},
             title='Monthly Order Average'
         )
     monthly_oreder_avg_fig = go.Figure(data=plot_data, layout=plot_layout)
@@ -255,7 +290,6 @@ def metrics_of_data():
     #merge first purchase date column to our main dataframe (tx_uk)
     uk = pd.merge(uk, min_purchase, on='CustomerID')
 
-    uk.head()
 
     #create a column called User Type and assign Existing 
     #if User's First Purchase Year Month before the selected Invoice Year Month
@@ -281,7 +315,8 @@ def metrics_of_data():
     ]
 
     plot_layout = go.Layout(
-            xaxis={"type": "category"},
+            xaxis={"type": "category", 'title': "YearMonth"},
+            yaxis= {'title': "Revenue"},
             title='New vs Existing'
         )
     new_existing_cust_fig = go.Figure(data=plot_data, layout=plot_layout)
@@ -295,7 +330,9 @@ def metrics_of_data():
     user_ratio = user_ratio.dropna()
 
     #print the dafaframe
-    #user_ratio
+    if st.checkbox('User Ratio Data'):
+       user_ratio.head(10)
+    
 
     #plot the result
 
@@ -307,7 +344,8 @@ def metrics_of_data():
     ]
 
     plot_layout = go.Layout(
-            xaxis={"type": "category"},
+            xaxis={"type": "category", 'title': "YearMonth"},
+            yaxis= {'title': "Customers Ratio"},
             title='New Customer Ratio'
         )
     new_customer_fig = go.Figure(data=plot_data, layout=plot_layout)
@@ -325,7 +363,8 @@ def metrics_of_data():
     #create retention matrix with crosstab
     retention = pd.crosstab(user_purchase['CustomerID'], user_purchase['InvoiceYearMonth']).reset_index()
 
-    #retention.head()
+    if st.checkbox('Retention Data'):
+        retention.head(10)
 
     #create an array of dictionary which keeps Retained & Total User count for each month
     months = retention.columns[2:]
@@ -354,17 +393,21 @@ def metrics_of_data():
     ]
 
     plot_layout = go.Layout(
-            xaxis={"type": "category"},
+            xaxis={"type": "category", 'title': "YearMonth"},
+            yaxis= {'title': "Retention Rate per Month"},
             title='Monthly Retention Rate'
         )
     monthly_retention_rate_fig = go.Figure(data=plot_data, layout=plot_layout)
     st.plotly_chart(monthly_retention_rate_fig)
     st.write("""Monthly Retention Rate significantly jumped from June to August and went back to previous levels afterwards.""")
 
+    if st.checkbox("See DataFrame"):
+        data.head()
+
 
 # Function for customer Segmentation
 def customer_segmentation():
-    st.markdown("**_Customer Segmentation_**")
+    st.header("**_Customer Segmentation_**")
     st.write("""We have analyzed the major **_metrics_** for our online retail business.  
     It’s time to focus on customers and segment them.""")
 
@@ -419,6 +462,8 @@ def customer_segmentation():
     ]
 
     plot_layout = go.Layout(
+            yaxis= {'title': "Users"},
+            xaxis= {'title': "Recency"},
             title='Recency'
         )
     recency_fig = go.Figure(data=plot_data, layout=plot_layout)
@@ -476,6 +521,8 @@ def customer_segmentation():
     ]
 
     plot_layout = go.Layout(
+            yaxis= {'title': "No. of Orders"},
+            xaxis= {'title': "Frequency"},
             title='Frequency'
         )
     frequebcy_fig = go.Figure(data=plot_data, layout=plot_layout)
@@ -516,6 +563,8 @@ def customer_segmentation():
     ]
 
     plot_layout = go.Layout(
+            yaxis= {'title': "User"},
+            xaxis= {'title': "Revenue"},
             title='Monetary Value'
         )
     revenue_fig = go.Figure(data=plot_data, layout=plot_layout)
@@ -721,7 +770,7 @@ def customer_segmentation():
 
 #Customers Lifetime Value Prediction
 def customer_value_prediction():
-    st.markdown("**_Customer Lifetime Value_**")
+    st.header("**_Customer Lifetime Value_**")
     st.write("""
         We invest in customers (acquisition costs, offline ads, promotions, discounts & etc.) 
         to generate revenue and be profitable. Naturally, these actions make some customers super 
@@ -729,7 +778,8 @@ def customer_value_prediction():
         We need to identify these behavior patterns, segment customers and act accordingly.
        By using the **equation below**, we can have Lifetime Value for each customer in that specific time window:
     """)
-    st.write(data.head(5))
+    if st.checkbox('Show DAtaframe'):
+        st.write(data.head(5))
     st.latex(r'''Lifetime Value: Total Gross Revenue - Total Cost''')
     # data['InvoiceDate'] = pd.to_datetime(data['InvoiceDate'])
     uk = data.query("Country=='United Kingdom'").reset_index(drop=True)
@@ -789,7 +839,8 @@ def customer_value_prediction():
 
 
     #show data frame
-    #user.head()
+    if st.checkbox('User Data'):
+        user.head()
 
     #calculate revenue and create a new dataframe for it
     df_6m['Revenue'] = df_6m['UnitPrice'] * df_6m['Quantity']
@@ -805,6 +856,8 @@ def customer_value_prediction():
     ]
 
     plot_layout = go.Layout(
+            yaxis= {'title': "Revenue"},
+            xaxis= {'title': "6-month Revenue"},
             title='6-month Revenue'
         )
     fig_6m = go.Figure(data=plot_data, layout=plot_layout)
@@ -949,39 +1002,43 @@ def customer_value_prediction():
 
 #churn Prediction
 def churn_prediction():
-    st.write('** Churn Prediction **')
+    st.header('**_Churn Prediction_ **')
+    st.write("""Since we know our best customers by segmentation and lifetime value prediction, we should also work hard on retaining them. 
+    That’s what makes Retention Rate is one of the most critical metrics. Retention Rate is an indication of how good your product market fits. 
+    If your product is not satisfactory, you should see your customers churning very soon. 
+    One of the powerful tools to improve Retention Rate is Churn Prediction.
+    By using this technique, you can easily find out who is likely to churn in the given period.""")
     churn_df = pd.read_csv("Data/churn_data.csv")
     st.write(churn_df.head())
     churn_df.loc[churn_df.Churn=='No','Churn'] = 0 
     churn_df.loc[churn_df.Churn=='Yes','Churn'] = 1
     churn_df.Churn = churn_df.Churn.astype('int')
-    st.write(churn_df)
 
-    # def plot_churn_graphs(datafieldname):
-        #Gender
-    df_plot = churn_df.groupby('gender').Churn.mean().reset_index()
-    plot_data = [
-        go.Bar(
-            x=df_plot['gender'],
-            y=df_plot['Churn'],
-            width = [0.5, 0.5],
-            marker=dict(
-            color=['green', 'blue', 'yellow', 'red'])
-        )
-    ]
-    plot_layout = go.Layout(
-            xaxis={"type": "category"},
-            yaxis={"title": "Churn Rate"},
-            title='gender'.upper(),
-            plot_bgcolor  = 'rgb(243,243,243)',
-            paper_bgcolor  = 'rgb(243,243,243)',
-        )
-    st.plotly_chart(go.Figure(data=plot_data, layout=plot_layout))
+    def plot_churn_graphs(datafieldname):
+
+        df_plot = churn_df.groupby(datafieldname).Churn.mean().reset_index()
+        plot_data = [
+            go.Bar(
+                x=df_plot[datafieldname],
+                y=df_plot['Churn'],
+                width = [0.5, 0.5],
+                marker=dict(
+                color=['green', 'blue', 'yellow', 'red'])
+            )
+        ]
+        plot_layout = go.Layout(
+                xaxis={"type": "category"},
+                yaxis={"title": "Churn Rate"},
+                title=datafieldname.upper(),
+                plot_bgcolor  = 'rgb(243,243,243)',
+                paper_bgcolor  = 'rgb(243,243,243)',
+            )
+        st.plotly_chart(go.Figure(data=plot_data, layout=plot_layout))
     
-    # plot_churn_graphs('gender')
-    # plot_churn_graphs('PhoneService')
-    # plot_churn_graphs('PaperlessBilling')
-    # plot_churn_graphs('PaymentMethod')
+    plot_churn_graphs('gender')
+    plot_churn_graphs('PhoneService')
+    plot_churn_graphs('PaperlessBilling')
+    plot_churn_graphs('PaymentMethod')
     
     def churn_scatter_graph(datafield1):
         df_plot = churn_df.groupby(datafield1).Churn.mean().reset_index()
@@ -1033,7 +1090,8 @@ def churn_prediction():
         ]
 
         plot_layout = go.Layout(
-                xaxis={"type": "category","categoryarray":['Low','Mid','High']},
+                xaxis={"type": "category","categoryarray":['Low','Mid','High'], 'title': datafieldnam2},
+                yaxis={'title':'Churn Rate'},
                 title='{} vs Churn Rate'.format(datafieldnam2),
                 plot_bgcolor  = "rgb(243,243,243)",
                 paper_bgcolor  = "rgb(243,243,243)",
@@ -1097,21 +1155,26 @@ def churn_prediction():
         .format(xgb_model.score(X_train, y_train)))
     st.write('Accuracy of XGB classifier on test set: {:.2f}'
         .format(xgb_model.score(X_test[X_train.columns], y_test)))
-
     y_pred = xgb_model.predict(X_test)
     st.write(classification_report(y_test, y_pred))
 
-    # fig, ax = plt.subplots(figsize=(10,8))
     
-    # st.plt(plot_importance(xgb_model, ax=ax))
+    fig, ax = plt.subplots(figsize=(10,6))
+    plot_importance(xgb_model, ax=ax)
+    st.pyplot(plt.show())
+
+   
 
     churn_df['probability'] = xgb_model.predict_proba(churn_df[X_train.columns])[:,1]
-    st.write(churn_df[['customerID', 'probability']].head())
+    if st.checkbox('See Probability result of model'):
+        st.write(churn_df[['customerID', 'probability']].head(10))
     #Feature Engineering-grouping numerical columns, label encoder, get_dummies
 
 
 #Predict next day of purchase of customer
 def predict_next_purchase_day():
+
+    st.title("Pridicting Next Purchase Day Of Customers")
     st.write("""Predictive analytics helps us a lot on this one. One of the many opportunities
     it can provide is predicting the next purchase day of the customer.
     **What if you know if a customer is likely to make another purchase in 7 days?**""")
@@ -1124,9 +1187,8 @@ def predict_next_purchase_day():
      <li> Mid LTV</li>
     </ol>
     """, unsafe_allow_html= True)
-
-    #convert date field from string to datetime
-    # data['InvoiceDate'] = pd.to_datetime(data['InvoiceDate'])
+    if st.checkbox("View Data:"):
+        data.head(10)
 
     #create dataframe with uk data only
     uk = data.query("Country=='United Kingdom'").reset_index(drop=True)
@@ -1180,6 +1242,8 @@ def predict_next_purchase_day():
     ]
 
     plot_layout = go.Layout(
+            xaxis={'title':'reacency'},
+            yaxis={'title':'Customer'},
             title='Recency'
         )
     np_fig = go.Figure(data=plot_data, layout=plot_layout)
@@ -1448,9 +1512,14 @@ def predict_next_purchase_day():
     np_class.loc[np_class.NextPurchaseDay>20,'NextPurchaseDayRange'] = 1
     np_class.loc[np_class.NextPurchaseDay>50,'NextPurchaseDayRange'] = 0
 
+    st.write("""
+        The **correlation matrix** is one of the cleanest ways to show correlation between our features and label.
+    """)
+
     corr = np_class[np_class.columns].corr()
-    plt.figure(figsize = (30,20))
+    plt.figure(figsize = (40,30))
     sns.heatmap(corr, annot = True, linewidths=0.2, fmt=".2f")
+    st.pyplot()
 
     #train & test split
     np_class = np_class.drop('NextPurchaseDay',axis=1)
@@ -1463,9 +1532,9 @@ def predict_next_purchase_day():
     models.append(("NB",GaussianNB()))
     models.append(("RF",RandomForestClassifier()))
     models.append(("SVC",SVC()))
-    models.append(("Dtree",DecisionTreeClassifier()))
-    models.append(("XGB",xgb.XGBClassifier()))
-    models.append(("KNN",KNeighborsClassifier()))
+    models.append(("DecisionTreeClassifier",DecisionTreeClassifier()))
+    models.append(("XGBClassifier",xgb.XGBClassifier()))
+    models.append(("KNeighborsClassifier",KNeighborsClassifier()))
 
     def save_model(model,path):
         import pickle
@@ -1487,9 +1556,6 @@ def predict_next_purchase_day():
             st.write(e)
         st.write(name, cv_result)
 
-
-
-
     xgb_model = xgb.XGBClassifier().fit(X_train, y_train)
     st.write('Accuracy of XGB classifier on training set: {:.2f}'
         .format(xgb_model.score(X_train, y_train)))
@@ -1504,7 +1570,10 @@ def predict_next_purchase_day():
     gsearch1 = GridSearchCV(estimator = xgb.XGBClassifier(), 
     param_grid = param_test1, scoring='accuracy',n_jobs=-1,iid=False, cv=2)
     gsearch1.fit(X_train,y_train)
-    gsearch1.best_params_, gsearch1.best_score_
+    if st.checkbox('Best Grid Parameters'):
+        gsearch1.best_params_,
+    if st.checkbox('Click to view GridSearch Best Score'):
+        gsearch1.best_score_* 100
 
 
 #predict sales effect
@@ -1520,19 +1589,20 @@ def predicting_sales():
         for this purpose we will focus on Long Short-term Memory (LSTM) method.</p> 
     """, 
     unsafe_allow_html=True)
-    df_sales = pd.read_csv("Data/Sales_data/sales_train.csv")
+    df_sales = st.cache(pd.read_csv)("Data/Sales_data/sales_train.csv")
 
     #convert date field from string to datetime
     df_sales['date'] = pd.to_datetime(df_sales['date'])
-    st.write(df_sales.head())
+    if st.checkbox('View data'):
+        st.write(df_sales.head())
 
     #represent month in date field as its first day
     df_sales['date'] = df_sales['date'].dt.year.astype('str') + '-' + df_sales['date'].dt.month.astype('str') + '-01'
     df_sales['date'] = pd.to_datetime(df_sales['date'])
     #groupby date and sum the sales
     df_sales = df_sales.groupby('date').sales.sum().reset_index()
-
-    st.write(df_sales.head())
+    if st.checkbox('View Data'):
+        st.write(df_sales.head())
 
     st.markdown("""
         <h3>Data Transformation</h3>
@@ -1555,6 +1625,8 @@ def predicting_sales():
             )
         ]
         plot_layout = go.Layout(
+                xaxis={'title':'year'},
+                yaxis={'title':'Sales'},
                 title='Monthly Sales'
             )
         return st.plotly_chart(go.Figure(data=plot_data, layout=plot_layout))
@@ -1713,7 +1785,7 @@ def market_response_model():
     """,unsafe_allow_html=True)
     st.image(Image.open("market_response_ex.png"), caption = "Example", use_column_width=True )
 
-    df_response = pd.read_csv("Data/response_data.csv")
+    df_response = st.cache(pd.read_csv)("Data/response_data.csv")
     st.write(df_response.head())
 
     st.markdown("""
@@ -1916,7 +1988,7 @@ def market_response_model():
     xgb_model = xgb.XGBClassifier().fit(X_train, y_train)
     class_probs = xgb_model.predict_proba(X_test)
     #st.write(class_probs[0] * 100)
-    st.write(r'{:,.2f}'.format(class_probs[0][0] * 100))
+    st.write(r'Predicted Probability Score : {:,.2f}'.format(class_probs[0][0] * 100))
 
     st.latex(r'UpliftScore = TR + CN - TN - CR')
 
