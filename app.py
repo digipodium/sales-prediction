@@ -1600,7 +1600,7 @@ def predict_next_purchase_day():
         ls_data = [Customer_id, Recency_no, Recency_cluster, Frequency_input, Frequency_cluster, Revenue, Revenue_cluster, OverallScore, DayDiff, DayDiff2, 
                  DayDiff3, DayDiffMean, DayDiffStdev, Segment_high_value,Segment_Low_value, Segment_Mid_value  ]
 
-        st.write(ls_data,predict_upnext_purchase_day(ls_data, model_name))
+        st.write(np.array(ls_data).reshape(1,-1),predict_upnext_purchase_day(ls_data, model_name))
 
 
 
